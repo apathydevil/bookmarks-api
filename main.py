@@ -3,11 +3,11 @@ import json
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
-from models import Bookmark
+from models import Bookmark, BookmarkOut
 
 app = FastAPI()
 
-notes: dict[int, dict] = {}
+bookmarks: dict[int, dict] = {}
 next_id = 1
 
 
@@ -16,67 +16,69 @@ def read_root():
     return {"message": "Hello, World!"}
 
 
-@app.post("/notes")
+@app.post("/bookmarks", response_model=BookmarkOut)
 def create_bookmark(bookmark: Bookmark):
     global next_id
     combined_dict = {"id": next_id} | bookmark.model_dump()
-    notes[next_id] = combined_dict
+    bookmarks[next_id] = combined_dict
     new_id = next_id
     next_id = next_id + 1
-    save_notes()
-    return notes[new_id]
+    save_bookmarks()
+    return bookmarks[new_id]
 
 
-@app.get("/notes")
+@app.get("/bookmarks", response_model=list[BookmarkOut])
 def get_bookmarks():
-    return list(notes.values())
+    return list(bookmarks.values())
 
 
-@app.get("/notes/{note_id}")
-def get_by_id(note_id: int):
-    if note_id not in notes:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return notes[note_id]
+@app.get("/bookmarks/{bookmark_id}", response_model=BookmarkOut)
+def get_by_id(bookmark_id: int):
+    raise_exception(bookmark_id)
+    return bookmarks[bookmark_id]
 
 
-@app.put("/notes/{note_id}")
-def update_by_id(note_id: int, bookmark: Bookmark):
-    if note_id not in notes:
-        raise HTTPException(status_code=404, detail="Note not found")
-    combined_dict = {"id": note_id} | bookmark.model_dump()
-    notes[note_id] = combined_dict
-    save_notes()
-    return notes[note_id]
+@app.put("/bookmarks/{bookmark_id}", response_model=BookmarkOut)
+def update_by_id(bookmark_id: int, bookmark: Bookmark):
+    raise_exception(bookmark_id)
+    combined_dict = {"id": bookmark_id} | bookmark.model_dump()
+    bookmarks[bookmark_id] = combined_dict
+    save_bookmarks()
+    return bookmarks[bookmark_id]
 
 
-@app.delete("/notes/{note_id}")
-def delete_by_id(note_id: int):
-    if note_id not in notes:
-        raise HTTPException(status_code=404, detail="Note not found")
-    del notes[note_id]
-    save_notes()
-    return {"message": "Note deleted successfully"}
+@app.delete("/bookmarks/{bookmark_id}")
+def delete_by_id(bookmark_id: int):
+    raise_exception(bookmark_id)
+    del bookmarks[bookmark_id]
+    save_bookmarks()
+    return {"message": "Bookmark deleted successfully"}
 
 
-def save_notes():
-    data = {"next_id": next_id, "notes": notes}
-    with open("notes.json", "w") as f:
+def save_bookmarks():
+    data = {"next_id": next_id, "bookmarks": bookmarks}
+    with open("bookmarks.json", "w") as f:
         json.dump(data, f)
 
 
-def load_notes():
+def load_bookmarks():
     global next_id
-    global notes
+    global bookmarks
     try:
-        with open("notes.json", "r") as f:
+        with open("bookmarks.json", "r") as f:
             data = json.load(f)
         next_id = data["next_id"]
-        notes = {int(key): value for key, value in data["notes"].items()}
+        bookmarks = {int(key): value for key, value in data["bookmarks"].items()}
     except FileNotFoundError:
         pass
 
 
-load_notes()
+def raise_exception(bookmark_id: int):
+    if bookmark_id not in bookmarks:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+
+
+load_bookmarks()
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
