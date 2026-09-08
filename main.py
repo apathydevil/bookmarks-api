@@ -3,7 +3,7 @@ import json
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
-from models import Bookmark, BookmarkOut
+from models import Bookmark, BookmarkOut, BookmarkPatch
 
 app = FastAPI()
 
@@ -42,6 +42,17 @@ def get_by_id(bookmark_id: int):
 def update_by_id(bookmark_id: int, bookmark: Bookmark):
     raise_exception(bookmark_id)
     combined_dict = {"id": bookmark_id} | bookmark.model_dump()
+    bookmarks[bookmark_id] = combined_dict
+    save_bookmarks()
+    return bookmarks[bookmark_id]
+
+
+@app.patch("/bookmarks/{bookmark_id}", response_model=BookmarkOut)
+def patch_by_id(bookmark_id: int, bookmark: BookmarkPatch):
+    raise_exception(bookmark_id)
+    existing_bookmark = bookmarks[bookmark_id]
+    updated_data = bookmark.model_dump(exclude_unset=True)
+    combined_dict = existing_bookmark | updated_data
     bookmarks[bookmark_id] = combined_dict
     save_bookmarks()
     return bookmarks[bookmark_id]

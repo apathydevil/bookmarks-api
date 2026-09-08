@@ -30,13 +30,18 @@ Server starts at `http://127.0.0.1:8000`. Interactive docs (Swagger UI) at
 | GET    | `/bookmarks`       | List all bookmarks       |
 | POST   | `/bookmarks`       | Create a bookmark        |
 | GET    | `/bookmarks/{id}`  | Get a bookmark by id     |
-| PUT    | `/bookmarks/{id}`  | Update a bookmark by id  |
+| PUT    | `/bookmarks/{id}`  | Replace a bookmark by id |
+| PATCH  | `/bookmarks/{id}`  | Partially update a bookmark by id |
 | DELETE | `/bookmarks/{id}`  | Delete a bookmark by id  |
 
 A bookmark has a `title` (required), `url` (required), and `description`
 (optional).
 
-### Example request
+`PUT` requires the full object (`title` and `url` must both be sent). `PATCH`
+only requires the field(s) you want to change — anything left out keeps its
+current value.
+
+### Example requests
 
 ```json
 POST /bookmarks
@@ -46,5 +51,14 @@ Content-Type: application/json
   "title": "FastAPI docs",
   "url": "https://fastapi.tiangolo.com",
   "description": "Official documentation"
+}
+```
+
+```json
+PATCH /bookmarks/1
+Content-Type: application/json
+
+{
+  "description": "Updated description only"
 }
 ```
