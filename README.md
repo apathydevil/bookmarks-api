@@ -1,12 +1,17 @@
 # bookmarks-api
 
-A small FastAPI CRUD service for storing bookmarks, built as a `uv` learning project.
+A small REST API for storing bookmarks, built with FastAPI and SQLite, with a
+full pytest suite covering every endpoint.
 
 ## Stack
 
-- FastAPI + Pydantic for the API and request/response validation
-- In-memory storage, persisted to `bookmarks.json` on every change (no database)
-- `uv` for dependency management
+- **FastAPI** + **Pydantic** — routing and request/response validation, with
+  separate input, output (`response_model`), and partial-update models
+- **SQLite** via Python's built-in `sqlite3` — hand-written, parameterized SQL
+  (no ORM); `bookmarks.db` is created automatically on first run
+- **pytest** + FastAPI's `TestClient` — tests run against a separate
+  `test_bookmarks.db`, so they never touch real data
+- **uv** — dependency management
 
 ## Setup
 
@@ -23,16 +28,30 @@ uv run main.py
 Server starts at `http://127.0.0.1:8000`. Interactive docs (Swagger UI) at
 `http://127.0.0.1:8000/docs`.
 
+## Test
+
+```bash
+uv run pytest
+```
+
+The suite covers:
+
+- the happy path of every endpoint (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`)
+- `PATCH` only changing the fields that were sent, leaving the rest intact
+- `DELETE` actually removing the record (a follow-up `GET` returns `404`)
+- `404` responses for every id-based route when the bookmark doesn't exist
+- `422` validation errors when required fields are missing
+
 ## Endpoints
 
-| Method | Path               | Description              |
-|--------|--------------------|--------------------------|
-| GET    | `/bookmarks`       | List all bookmarks       |
-| POST   | `/bookmarks`       | Create a bookmark        |
-| GET    | `/bookmarks/{id}`  | Get a bookmark by id     |
-| PUT    | `/bookmarks/{id}`  | Replace a bookmark by id |
+| Method | Path               | Description                       |
+|--------|--------------------|-----------------------------------|
+| GET    | `/bookmarks`       | List all bookmarks                |
+| POST   | `/bookmarks`       | Create a bookmark                 |
+| GET    | `/bookmarks/{id}`  | Get a bookmark by id              |
+| PUT    | `/bookmarks/{id}`  | Replace a bookmark by id          |
 | PATCH  | `/bookmarks/{id}`  | Partially update a bookmark by id |
-| DELETE | `/bookmarks/{id}`  | Delete a bookmark by id  |
+| DELETE | `/bookmarks/{id}`  | Delete a bookmark by id           |
 
 A bookmark has a `title` (required), `url` (required), and `description`
 (optional).

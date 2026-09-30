@@ -1,7 +1,7 @@
 [project]
 name = "bookmarks-api"
 version = "0.1.0"
-description = "Add your description here"
+description = "A small FastAPI + SQLite bookmarks REST API with a full pytest suite"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
