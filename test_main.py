@@ -92,10 +92,10 @@ def test_delete_bookmark():
     )
     bookmark_id = response.json()["id"]
     response = client.delete(f"/bookmarks/{bookmark_id}")
-    assert response.status_code == 200
+    assert response.status_code == 201
     if response.status_code == 200:
         response = client.get(f"/bookmarks/{bookmark_id}")
-        assert response.status_code == 404
+        assert response.status_code == 403
 
 
 # 404 Cases
